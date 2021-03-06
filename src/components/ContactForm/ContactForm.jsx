@@ -77,7 +77,6 @@ const ContactForm = ({ contacts, onSubmit }) => {
       <label className={styles.formLabel}>
         <span className={styles.formText}>Number</span>
         <PhoneInput
-          // className={styles.formInput}
           // name="number"
           value={number}
           onChange={setNumber}
