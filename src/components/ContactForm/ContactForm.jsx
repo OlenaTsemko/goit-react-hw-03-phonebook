@@ -1,28 +1,29 @@
-import { useState } from 'react';
+import { Component } from 'react';
 import PropTypes from 'prop-types';
 
 import shortid from 'shortid';
-import PhoneInput from 'react-phone-number-input';
 
 import styles from './ContactForm.module.scss';
-import 'react-phone-number-input/style.css';
 
-const ContactForm = ({ contacts, onSubmit }) => {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
-
-  const handleChange = event => {
-    const { name, value } = event.currentTarget;
-    if (name === 'name') {
-      setName(value);
-    }
-    // if (name === 'number') {
-    //   setNumber(value);
-    // }
+class ContactForm extends Component {
+  static propTypes = {
+    onSubmit: PropTypes.func.isRequired,
   };
 
-  const handleFormSubmit = event => {
+  state = {
+    name: '',
+    number: '',
+  };
+
+  handleChange = event => {
+    const { name, value } = event.currentTarget;
+    this.setState({ [name]: value });
+  };
+
+  handleFormSubmit = event => {
     event.preventDefault();
+    const { name, number } = this.state;
+    const { contacts } = this.props;
 
     if (!name || !number) {
       alert('Please enter the correct name and number');
@@ -36,66 +37,53 @@ const ContactForm = ({ contacts, onSubmit }) => {
     };
 
     const checkSameName = contacts.find(({ name }) => name === contact.name);
-    const checkSameNumber = contacts.find(
-      ({ number }) => number === contact.number,
-    );
-
-    if (checkSameNumber) {
-      const { name, number } = checkSameNumber;
-      alert(`This number already exists: "${name}: ${number}"`);
-      return;
-    }
-
     if (checkSameName) {
       alert(`${name} is already in contacts`);
       return;
     }
 
-    onSubmit(contact);
-    reset();
+    this.props.onSubmit(contact);
+    this.reset();
   };
 
-  const reset = () => {
-    setName('');
-    setNumber('');
+  reset = () => {
+    this.setState({ name: '', number: '' });
   };
 
-  return (
-    <form className={styles.ContactForm} onSubmit={handleFormSubmit}>
-      <label className={styles.formLabel}>
-        <span className={styles.formText}>Name</span>
-        <input
-          className={styles.formInput}
-          type="text"
-          placeholder="Enter contact's name"
-          name="name"
-          value={name}
-          onChange={handleChange}
-          autoComplete="off"
-        />
-      </label>
-      <label className={styles.formLabel}>
-        <span className={styles.formText}>Number</span>
-        <PhoneInput
-          // className={styles.formInput}
-          // name="number"
-          value={number}
-          onChange={setNumber}
-          defaultCountry="UA"
-          international
-          autoComplete="off"
-        />
-      </label>
+  render() {
+    const { name, number } = this.state;
 
-      <button className={styles.formBtn} type="submit">
-        Add contact
-      </button>
-    </form>
-  );
-};
+    return (
+      <form className={styles.ContactForm} onSubmit={this.handleFormSubmit}>
+        <label className={styles.formLabel}>
+          <span className={styles.formText}>Name</span>
+          <input
+            className={styles.formInput}
+            type="text"
+            placeholder="Enter contact's name"
+            name="name"
+            value={name}
+            onChange={this.handleChange}
+          />
+        </label>
+        <label className={styles.formLabel}>
+          <span className={styles.formText}>Number</span>
+          <input
+            className={styles.formInput}
+            type="tel"
+            placeholder="Enter contact's number"
+            name="number"
+            value={number}
+            onChange={this.handleChange}
+          />
+        </label>
 
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-};
+        <button className={styles.formBtn} type="submit">
+          Add contact
+        </button>
+      </form>
+    );
+  }
+}
 
 export default ContactForm;

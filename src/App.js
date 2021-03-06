@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { Component } from 'react';
 
 import ContactForm from 'components/ContactForm';
 import ContactList from 'components/ContactList';
@@ -7,49 +7,61 @@ import Container from 'components/Container';
 
 import styles from './App.module.scss';
 
-const App = () => {
-  const [contacts, setContacts] = useState([]);
-  const [filter, setFilter] = useState('');
+class App extends Component {
+  state = {
+    contacts: [],
+    filter: '',
+  };
 
-  useEffect(() => {
-    setContacts(JSON.parse(localStorage.getItem('contacts')));
-  }, []);
+  componentDidMount() {
+    this.setState({ contacts: JSON.parse(localStorage.getItem('contacts')) });
+  }
 
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.contacts.length !== this.state.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
+  }
 
-  const addNewContact = contact =>
-    setContacts(prevState => [contact, ...prevState]);
+  addNewContact = contact =>
+    this.setState(({ contacts }) => ({ contacts: [contact, ...contacts] }));
 
-  const handleChangeFilter = event => setFilter(event.currentTarget.value);
+  handleChangeFilter = event =>
+    this.setState({ filter: event.currentTarget.value });
 
-  const getContactsToShow = () => {
-    const normalizedFilter = filter.toLowerCase();
+  getContactsToShow = () => {
+    const { filter, contacts } = this.state;
 
     return contacts.filter(({ name }) =>
-      name.toLowerCase().includes(normalizedFilter),
+      name.toLowerCase().includes(filter.toLowerCase()),
     );
   };
 
-  const handleDeleteContact = id =>
-    setContacts(prevState => prevState.filter(contact => contact.id !== id));
+  handleDeleteContact = id =>
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== id),
+    }));
 
-  return (
-    <div className={styles.App}>
-      <Container>
-        <h1 className={styles.title}>Phonebook</h1>
-        <ContactForm contacts={contacts} onSubmit={addNewContact} />
+  render() {
+    const { contacts, filter } = this.state;
+    const contactsToShow = this.getContactsToShow();
 
-        <h2 className={styles.titleContacts}>Contacts</h2>
-        <Filter value={filter} onChangeFilter={handleChangeFilter} />
-        <ContactList
-          contacts={getContactsToShow()}
-          onDeleteContact={handleDeleteContact}
-        />
-      </Container>
-    </div>
-  );
-};
+    return (
+      <div className={styles.App}>
+        <Container>
+          <h1 className={styles.title}>Phonebook</h1>
+          <ContactForm contacts={contacts} onSubmit={this.addNewContact} />
+
+          <h2 className={styles.titleContacts}>Contacts</h2>
+          <Filter value={filter} onChangeFilter={this.handleChangeFilter} />
+          <ContactList
+            contacts={contactsToShow}
+            onDeleteContact={this.handleDeleteContact}
+          />
+        </Container>
+      </div>
+    );
+  }
+}
 
 export default App;
