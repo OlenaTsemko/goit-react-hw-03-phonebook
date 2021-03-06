@@ -1,30 +1,63 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 
+import shortid from 'shortid';
+import PhoneInput from 'react-phone-number-input';
+
 import styles from './ContactForm.module.scss';
+import 'react-phone-number-input/style.css';
 
-const ContactForm = ({ onSubmit }) => {
-  const [state, setState] = useState({
-    name: '',
-    number: '',
-  });
-
-  const { name, number } = state;
+const ContactForm = ({ contacts, onSubmit }) => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
 
   const handleChange = event => {
     const { name, value } = event.currentTarget;
-    setState({ ...state, [name]: value });
+    if (name === 'name') {
+      setName(value);
+    }
+    // if (name === 'number') {
+    //   setNumber(value);
+    // }
   };
 
   const handleFormSubmit = event => {
     event.preventDefault();
 
-    onSubmit(name, number);
+    if (!name || !number) {
+      alert('Please enter the correct name and number');
+      return;
+    }
+
+    const contact = {
+      id: shortid.generate(),
+      name,
+      number,
+    };
+
+    const checkSameName = contacts.find(({ name }) => name === contact.name);
+    const checkSameNumber = contacts.find(
+      ({ number }) => number === contact.number,
+    );
+
+    if (checkSameNumber) {
+      const { name, number } = checkSameNumber;
+      alert(`This number already exists: "${name}: ${number}"`);
+      return;
+    }
+
+    if (checkSameName) {
+      alert(`${name} is already in contacts`);
+      return;
+    }
+
+    onSubmit(contact);
     reset();
   };
 
   const reset = () => {
-    setState({ name: '', number: '' });
+    setName('');
+    setNumber('');
   };
 
   return (
@@ -38,17 +71,19 @@ const ContactForm = ({ onSubmit }) => {
           name="name"
           value={name}
           onChange={handleChange}
+          autoComplete="off"
         />
       </label>
       <label className={styles.formLabel}>
         <span className={styles.formText}>Number</span>
-        <input
-          className={styles.formInput}
-          type="tel"
-          placeholder="Enter contact's number"
-          name="number"
+        <PhoneInput
+          // className={styles.formInput}
+          // name="number"
           value={number}
-          onChange={handleChange}
+          onChange={setNumber}
+          defaultCountry="UA"
+          international
+          autoComplete="off"
         />
       </label>
 

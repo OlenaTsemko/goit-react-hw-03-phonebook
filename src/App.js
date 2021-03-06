@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import shortid from 'shortid';
+import { useState, useEffect } from 'react';
 
 import ContactForm from 'components/ContactForm';
 import ContactList from 'components/ContactList';
@@ -12,29 +11,26 @@ const App = () => {
   const [contacts, setContacts] = useState([]);
   const [filter, setFilter] = useState('');
 
-  const addNewContact = (name, number) => {
-    const contact = {
-      id: shortid.generate(),
-      name,
-      number,
-    };
+  useEffect(() => {
+    setContacts(JSON.parse(localStorage.getItem('contacts')));
+  }, []);
 
-    if (!name || !number) {
-      alert('Please enter the correct name and number');
-      return;
-    }
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-    contacts.find(({ name }) => name === contact.name)
-      ? alert(`${name} is already in contacts`)
-      : setContacts(prevState => [contact, ...prevState]);
-  };
+  const addNewContact = contact =>
+    setContacts(prevState => [contact, ...prevState]);
 
   const handleChangeFilter = event => setFilter(event.currentTarget.value);
 
-  const getContactsToShow = () =>
-    contacts.filter(({ name }) =>
-      name.toLowerCase().includes(filter.toLowerCase()),
+  const getContactsToShow = () => {
+    const normalizedFilter = filter.toLowerCase();
+
+    return contacts.filter(({ name }) =>
+      name.toLowerCase().includes(normalizedFilter),
     );
+  };
 
   const handleDeleteContact = id =>
     setContacts(prevState => prevState.filter(contact => contact.id !== id));
@@ -42,8 +38,8 @@ const App = () => {
   return (
     <div className={styles.App}>
       <Container>
-        <h1 className={styles.title}>Phonebook (hook)</h1>
-        <ContactForm onSubmit={addNewContact} />
+        <h1 className={styles.title}>Phonebook</h1>
+        <ContactForm contacts={contacts} onSubmit={addNewContact} />
 
         <h2 className={styles.titleContacts}>Contacts</h2>
         <Filter value={filter} onChangeFilter={handleChangeFilter} />
